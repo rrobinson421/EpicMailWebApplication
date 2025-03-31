@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import '/src/styles/EmailInboxStyle.css';
+import React, { useState } from "react";
+import Sidebar from "./Sidebar";
+import "/src/styles/EmailInboxStyle.css";
 
 export interface Email {
   from: string;
   subject: string;
   message: string;
+  category: string;
+  read: boolean;
 }
 
 interface EmailInboxProps {
@@ -12,10 +15,46 @@ interface EmailInboxProps {
 }
 
 const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick }) => {
+
+  const [activeTab, setActiveTab] = useState("all");
+
+  // Fake emails for display with categories
   const [emails] = useState<Email[]>([
-    { from: "eth63510@uga.edu", subject: "Hello!", message: "Hey there, how are you?" },
-    { from: "adg42902@uga.edu", subject: "Meeting Reminder", message: "Don't forget our project meeting at 3 AM." },
-    { from: "thv35131@uga.edu", subject: "Epic Project Update", message: "The latest project updates are in." },
+    {
+      from: "eth63510@uga.edu",
+      subject: "Hello!",
+      message: "Hey there, how are you?",
+      category: "all",
+      read: false,
+    },
+    {
+      from: "adg42902@uga.edu",
+      subject: "Meeting Reminder",
+      message: "Don't forget our project meeting at 3 AM.",
+      category: "work",
+      read: true,
+    },
+    {
+      from: "thv35131@uga.edu",
+      subject: "Epic Project Update",
+      message: "The latest project updates are in.",
+      category: "work",
+      read: false,
+    },
+    {
+      from: "professor@uga.edu",
+      subject: "Assignment Due",
+      message: "Your final project is due next week.",
+      category: "school",
+      read: true,
+    },
+    {
+      from: "newsletter@tech.com",
+      subject: "Weekly Updates",
+      message: "Here are the latest tech news.",
+      category: "subscriptions",
+      read: false,
+    },
     {
       from: "rme78901@uga.edu", 
       subject: "Biography", 
@@ -32,11 +71,14 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick }) => {
       When she took a small bite of the cake, the mouthwatering aroma would immediately cling to the roof of her mouth. Her insignificant anticipation always gave her mother's research an inviting smell.
       Starting from their home, a planet blessed by Abundance, they boarded research aircraft and set off to more worlds.
       Surrounded by flash bombs, silk headscarves, ribbons, and embroidery, the girl embraced joy amongst "lifeforms" created by spiraling and ascending data.
-      "A-Ruan, after eating Qingtuan, you must wash your fingers thoroughly before you can touch the lab bench."`
+      "A-Ruan, after eating Qingtuan, you must wash your fingers thoroughly before you can touch the lab bench."`,
+      category: "work",
+      read: false,
     },
-    { from: "mnp67239@uga.edu", subject: "New Assignment", message: "Here's the new assignment for the course." },
-    { from: "xyz98765@uga.edu", subject: "Urgent: Server Down", message: "The server is down, please check ASAP." },
-    { from: "abc23456@uga.edu", subject: "Holiday Schedule", message: "Please review the holiday schedule for this year." },
+    { from: "mnp67239@uga.edu", subject: "New Assignment", message: "Here's the new assignment for the course.",
+      category: "school",
+      read: true,
+     },
     { 
       from: "hta78901@uga.edu", 
       subject: "Genius Interview", 
@@ -47,28 +89,46 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick }) => {
       Indeed, no researcher could ever hope to match Madam Herta's scientific ability, which is why we're deeply impressed by your wisdom and insights. Could you please tell us, Madam Herta, whether you have any research recommendations for everyone? We'd love to learn from you!
       "No."
       Madam Herta, your intellect and talents are obvious to all, but normal people like us could never hope to be like you... Could you please give us any pointers, such as in what domain we might devote our limited cognitive resources to?
-      "You should go home and sleep."`
+      "You should go home and sleep."`,
+      category: "work",
+      read: false,
     },
-    { from: "def34567@uga.edu", subject: "Team Outing", message: "Let's plan a team outing next weekend!" },
-    { from: "ghi45678@uga.edu", subject: "Weekly Report", message: "The weekly report has been updated." },
-    { from: "jkl56789@uga.edu", subject: "Project Deadline", message: "Reminder: The project deadline is next week." },
-    { from: "mno67890@uga.edu", subject: "Code Review", message: "Please submit your code for review by end of day." },
+    { from: "def34567@uga.edu", subject: "Team Outing", message: "Let's plan a team outing next weekend!",
+      category: "school",
+      read: true,
+     },
+    { from: "ghi45678@uga.edu", subject: "Weekly Report", message: "The weekly report has been updated.",
+      category: "all",
+      read: true,
+     },
     
   ]);
 
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const filteredEmails = emails.filter(email =>
+  const searchedEmails = emails.filter(email =>
     email.from.toLowerCase().includes(searchQuery.toLowerCase()) ||
     email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
     email.message.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredEmails =
+    activeTab === "all"
+      ? emails
+      : emails.filter((email) => email.category === activeTab);
+
   return (
-    <div className="inbox">
-      <h2 className="inbox__title">Inbox</h2>
       
-      {/* Search Bar */}
+      
+      
+
+    <div className="email-container">
+      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <div className="main-content">
+        <h2 className="inbox__title">
+          {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Inbox
+        </h2>
+        {/* Search Bar */}
       <input
         type="text"
         className="inbox__search"
@@ -76,17 +136,26 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick }) => {
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
       />
-      
-      {/* Email List */}
-      <ul className="inbox__list">
-        {filteredEmails.map((email, index) => (
+        <ul className="inbox__list">
+          {searchedEmails.map((email, index) => (
+            <li
+              key={index}
+              className={`inbox__item ${!email.read ? "unread" : ""}`}
+            >
+              <strong>From:</strong> {email.from} <br />
+              <strong>Subject:</strong> {email.subject} <br />
+              <p>{email.message}</p>
+            </li>
+          ))}
+          {filteredEmails.map((email, index) => (
           <li key={index} className="inbox__item" onClick={() => onEmailClick(email)}>
             <strong>From:</strong> {email.from} <br />
             <strong>Subject:</strong> {email.subject} <br />
             <p>{email.message}</p>
           </li>
         ))}
-      </ul>
+        </ul>
+      </div>
     </div>
   );
 };

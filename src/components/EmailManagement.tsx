@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import EmailSend from './EmailSend'; 
 import EmailInbox from './EmailInbox';  
+import Sidebar from "./Sidebar";
 import { Email } from './EmailInbox';
 import '/src/styles/EmailManagementStyle.css'; 
 
@@ -22,8 +23,7 @@ const EmailManagement: React.FC = () => {
 
   return (
     <div className="email-management">
-      <div className="email-management-container">
-        <div className="email-inbox">
+      <div className="email-management-container">        <div className="email-inbox">
           <EmailInbox onEmailClick={handleEmailClick} />
         </div>
 
