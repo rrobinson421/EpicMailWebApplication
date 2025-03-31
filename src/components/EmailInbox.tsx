@@ -15,49 +15,18 @@ interface EmailInboxProps {
 }
 
 const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick }) => {
-
   const [activeTab, setActiveTab] = useState("all");
 
   // Fake emails for display with categories
   const [emails] = useState<Email[]>([
+    { from: "eth63510@uga.edu", subject: "Hello!", message: "Hey there, how are you?", category: "all", read: false },
+    { from: "adg42902@uga.edu", subject: "Meeting Reminder", message: "Don't forget our project meeting at 3 AM.", category: "work", read: true },
+    { from: "thv35131@uga.edu", subject: "Epic Project Update", message: "The latest project updates are in.", category: "work", read: false },
+    { from: "professor@uga.edu", subject: "Assignment Due", message: "Your final project is due next week.", category: "school", read: true },
+    { from: "newsletter@tech.com", subject: "Weekly Updates", message: "Here are the latest tech news.", category: "subscriptions", read: false },
     {
-      from: "eth63510@uga.edu",
-      subject: "Hello!",
-      message: "Hey there, how are you?",
-      category: "all",
-      read: false,
-    },
-    {
-      from: "adg42902@uga.edu",
-      subject: "Meeting Reminder",
-      message: "Don't forget our project meeting at 3 AM.",
-      category: "work",
-      read: true,
-    },
-    {
-      from: "thv35131@uga.edu",
-      subject: "Epic Project Update",
-      message: "The latest project updates are in.",
-      category: "work",
-      read: false,
-    },
-    {
-      from: "professor@uga.edu",
-      subject: "Assignment Due",
-      message: "Your final project is due next week.",
-      category: "school",
-      read: true,
-    },
-    {
-      from: "newsletter@tech.com",
-      subject: "Weekly Updates",
-      message: "Here are the latest tech news.",
-      category: "subscriptions",
-      read: false,
-    },
-    {
-      from: "rme78901@uga.edu", 
-      subject: "Biography", 
+      from: "rme78901@uga.edu",
+      subject: "Biography",
       message: `During her childhood, she received early exposure to science from her mother, who was a "scientist."
       Her life in a tiny house with her family of science enthusiasts was filled with love. As such, it wasn't long before she realized there were subtle differences in "love," each kind coming with different scents.
       Her grandmother with silver hair was a fan of traditional theater with its humming and chirping, while her father wore a pair of large, furry boots.
@@ -73,15 +42,12 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick }) => {
       Surrounded by flash bombs, silk headscarves, ribbons, and embroidery, the girl embraced joy amongst "lifeforms" created by spiraling and ascending data.
       "A-Ruan, after eating Qingtuan, you must wash your fingers thoroughly before you can touch the lab bench."`,
       category: "work",
-      read: false,
+      read: false
     },
-    { from: "mnp67239@uga.edu", subject: "New Assignment", message: "Here's the new assignment for the course.",
-      category: "school",
-      read: true,
-     },
-    { 
-      from: "hta78901@uga.edu", 
-      subject: "Genius Interview", 
+    { from: "mnp67239@uga.edu", subject: "New Assignment", message: "Here's the new assignment for the course.", category: "school", read: true },
+    {
+      from: "hta78901@uga.edu",
+      subject: "Genius Interview",
       message: `Recent research progress on the space station has been hampered by the impact of the accident. Several researchers have been blaming themselves for betraying Madam Herta's trust and preference. May I ask: Do you have anything you'd like to say to everyone?
       "Nope. Keep up the great work."
       Everyone wishes to contribute to your scientific research, Madam Herta...
@@ -91,37 +57,25 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick }) => {
       Madam Herta, your intellect and talents are obvious to all, but normal people like us could never hope to be like you... Could you please give us any pointers, such as in what domain we might devote our limited cognitive resources to?
       "You should go home and sleep."`,
       category: "work",
-      read: false,
+      read: false
     },
-    { from: "def34567@uga.edu", subject: "Team Outing", message: "Let's plan a team outing next weekend!",
-      category: "school",
-      read: true,
-     },
-    { from: "ghi45678@uga.edu", subject: "Weekly Report", message: "The weekly report has been updated.",
-      category: "all",
-      read: true,
-     },
-    
+    { from: "def34567@uga.edu", subject: "Team Outing", message: "Let's plan a team outing next weekend!", category: "school", read: true },
+    { from: "ghi45678@uga.edu", subject: "Weekly Report", message: "The weekly report has been updated.", category: "all", read: true },
   ]);
 
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const searchedEmails = emails.filter(email =>
-    email.from.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    email.message.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredEmails =
-    activeTab === "all"
-      ? emails
-      : emails.filter((email) => email.category === activeTab);
+  // Combine search and category filters
+  const filteredEmails = emails.filter((email) => {
+    const matchesCategory = activeTab === "all" || email.category === activeTab;
+    const matchesSearchQuery =
+      email.from.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      email.message.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearchQuery;
+  });
 
   return (
-      
-      
-      
-
     <div className="email-container">
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="main-content">
@@ -129,31 +83,25 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick }) => {
           {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Inbox
         </h2>
         {/* Search Bar */}
-      <input
-        type="text"
-        className="inbox__search"
-        placeholder="Search emails..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
+        <input
+          type="text"
+          className="inbox__search"
+          placeholder="Search emails..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
         <ul className="inbox__list">
-          {searchedEmails.map((email, index) => (
+          {filteredEmails.map((email, index) => (
             <li
               key={index}
               className={`inbox__item ${!email.read ? "unread" : ""}`}
+              onClick={() => onEmailClick(email)}
             >
               <strong>From:</strong> {email.from} <br />
               <strong>Subject:</strong> {email.subject} <br />
               <p>{email.message}</p>
             </li>
           ))}
-          {filteredEmails.map((email, index) => (
-          <li key={index} className="inbox__item" onClick={() => onEmailClick(email)}>
-            <strong>From:</strong> {email.from} <br />
-            <strong>Subject:</strong> {email.subject} <br />
-            <p>{email.message}</p>
-          </li>
-        ))}
         </ul>
       </div>
     </div>
