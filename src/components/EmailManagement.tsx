@@ -14,9 +14,7 @@ const EmailManagement: React.FC = () => {
 
   return (
     <div className="email-management">
-      <div className="email-management-container">
-      <Sidebar activeTab="inbox" onTabChange={(tab) => console.log(tab)} />
-        <div className="email-inbox">
+      <div className="email-management-container">        <div className="email-inbox">
           <EmailInbox />
         </div>
         <div className="email-send">

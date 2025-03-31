@@ -1,0 +1,46 @@
+.email-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.email-item {
+  display: grid;
+  grid-template-columns: 200px 1fr 2fr 150px;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #333;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.email-item:hover {
+  background-color: #444;
+}
+
+.email-item.unread {
+  background-color: #2a2a2a;
+}
+
+.email-sender {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.email-subject {
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.email-preview {
+  color: #cccccc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.email-date {
+  color: #999999;
+  text-align: right;
+}
