@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import '/src/styles/EmailSendStyle.css';
 
 interface EmailSendProps {
@@ -7,7 +6,6 @@ interface EmailSendProps {
 }
 
 const EmailSend: React.FC<EmailSendProps> = ({ onSubmit }) => {
-  const navigate = useNavigate(); // Hook for navigation
   const [to, setTo] = useState('');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -33,6 +31,7 @@ const EmailSend: React.FC<EmailSendProps> = ({ onSubmit }) => {
     setMessage('');
   };
 
+  // Render the email send form
   return (
     <div className="email-send">
       <form onSubmit={handleSubmit} className="email-form">

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import '/src/styles/AuthenticationStyle.css'
 
+// Router
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -12,6 +13,7 @@ const LoginPage: React.FC = () => {
     navigate('/register');
   };
 
+  // Handle login page
   return (
     <div className="login">
       <h1 className="login__title">Welcome!</h1>

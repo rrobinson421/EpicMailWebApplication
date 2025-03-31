@@ -5,6 +5,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
+    max-height: 100vh; 
+    overflow-y: auto; 
   }
   
   .inbox__title {
@@ -30,6 +33,9 @@
     border-color: black;
     border-width: 1px;
     border-style: solid;
+    max-height: 100px;
+    overflow: hidden;  
+    text-overflow: ellipsis; 
   }
   
   .inbox__item .from,
@@ -49,7 +55,7 @@
   .inbox__item .message {
     margin-top: 5px;
     padding-top: 5px;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid #ccc; 
   }
   
   .logout-button {
@@ -76,5 +82,17 @@
     .logout-button {
       width: 100%;
     }
+  }
+  
+  .inbox__search {
+    width: 80%;
+    padding: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    position: sticky;
+    top: 0;
+    background-color: white; 
+    z-index: 1; 
   }
   
