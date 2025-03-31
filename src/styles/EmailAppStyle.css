@@ -1,0 +1,105 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+    color: #ffffff;
+    height: 100vh; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+  }
+  
+  .app {
+    width: 100%;
+    max-width: 3000px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: rgb(255, 255, 255);
+  }
+  
+  .email-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  
+  .email-container > div {
+    width: 48%;
+  }
+  
+  button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: #08014f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #4d17d2;
+  }
+  
+  input, textarea {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 15px;
+  }
+  
+  input:focus, textarea:focus {
+    border-color: #08014f;
+  }
+  
+  @media (max-width: 768px) {
+    .email-container {
+      flex-direction: column;
+    }
+  
+    .email-container > div {
+      width: 100%;
+    }
+  }
+  
+  .login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+    text-align: center;
+  }
+  
+  .login-page .app {
+    width: auto;
+  }
+  
+  .email-send-page .app {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .email-send-page .email-container {
+    flex-direction: row;
+    width: 100%;
+  }
+  
+  .email-send-page .email-container > div {
+    width: 48%;
+  }
+  

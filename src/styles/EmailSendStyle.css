@@ -1,0 +1,66 @@
+.email-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  text-align: left;
+}
+
+.email-form div {
+  margin-bottom: 15px;
+}
+
+.email-form label {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.email-form input,
+.email-form textarea {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.email-form button {
+  padding: 12px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: #1a1a1a;
+  color: white;
+  border-radius: 4px;
+  border: none;
+}
+
+.email-form button:hover {
+  background-color: #646cff;
+}
+
+.success-message {
+  color: green;
+  font-size: 16px;
+  margin-top: 20px;
+  font-weight: bold;
+  text-align: center; 
+  width: 100%;
+}
+
+.logout-button {
+  padding: 12px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  background-color: #08014f;
+  color: white;
+  border-radius: 4px;
+  border: none;
+  margin-top: 20px;
+  display: block;
+  width: 200px; 
+  margin-left: auto;
+  margin-right: auto; 
+}
+
+.logout-button:hover {
+  background-color: #ff3333;
+}
+

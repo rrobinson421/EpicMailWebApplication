@@ -1,0 +1,80 @@
+.inbox {
+    padding: 20px;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .inbox__title {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: rgb(255, 255, 255);
+  }
+  
+  .inbox__list {
+    list-style-type: none;
+    padding: 0;
+    width: 80%;
+    max-width: 600px;
+  }
+  
+  .inbox__item {
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-color: black;
+    border-width: 1px;
+    border-style: solid;
+  }
+  
+  .inbox__item .from,
+  .inbox__item .subject {
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    margin-bottom: 5px;
+  }
+  
+  .inbox__item .from strong,
+  .inbox__item .subject strong {
+    display: inline-block;
+    width: 100px; 
+  }
+  
+  .inbox__item .message {
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid #ccc;
+  }
+  
+  .logout-button {
+    padding: 12px 16px;
+    font-size: 14px;
+    background-color: #08014f;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .logout-button:hover {
+    background-color: #ff3333;
+  }
+  
+  @media (max-width: 768px) {
+    .inbox__list {
+      width: 90%;
+    }
+  
+    .logout-button {
+      width: 100%;
+    }
+  }
+  
