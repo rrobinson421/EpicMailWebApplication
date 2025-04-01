@@ -7,7 +7,7 @@ import {
   FaAd,
   FaShieldAlt,
 } from "react-icons/fa";
-import "./Sidebar.css";
+import "/src/styles/SidebarStyle.css";
 
 interface SidebarProps {
   activeTab: string;

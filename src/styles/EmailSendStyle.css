@@ -26,7 +26,7 @@
   padding: 12px 16px;
   font-size: 14px;
   cursor: pointer;
-  background-color: #1a1a1a;
+  background-color: darkblue;
   color: white;
   border-radius: 4px;
   border: none;
@@ -64,3 +64,10 @@
   background-color: #ff3333;
 }
 
+textarea {
+  width: 100%;
+  height: 200px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
