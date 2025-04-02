@@ -1,5 +1,5 @@
 import React from "react";
-import "./EmailList.css";
+import "/src/styles/EmailListStyle.css";
 
 interface Email {
   id: string;

@@ -77,6 +77,7 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick }) => {
 
   return (
     <div className="email-container">
+      {/* Sidebar for tabs */}
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="main-content">
         <h2 className="inbox__title">
@@ -90,6 +91,7 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick }) => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        {/* Email List */}
         <ul className="inbox__list">
           {filteredEmails.map((email, index) => (
             <li
