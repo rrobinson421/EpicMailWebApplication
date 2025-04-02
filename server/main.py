@@ -1,4 +1,5 @@
 from flask import Flask
+# TODO: Include some WSGI server instead of running from Flask eventually
 
 app = Flask(__name__)
 
