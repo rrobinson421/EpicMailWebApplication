@@ -1,7 +1,10 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
+
 # TODO: Include some WSGI server instead of running from Flask eventually
 
 app = Flask(__name__)
+CORS(app, origins=["http://localhost:5173"])
 
 # Route for user registration
 @app.route('/register', methods=['POST'])
@@ -40,7 +43,7 @@ def email_inbox():
     ]
     return jsonify({"message": "Inbox emails fetched successfully", "emails": emails}), 200
 
-# Default route (e.g., redirect to login)
+# Default route
 @app.route('/')
 def default_route():
     return jsonify({"message": "Welcome to Epic Mail API"}), 200
