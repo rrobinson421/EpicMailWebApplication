@@ -38,8 +38,11 @@ def email_send():
 def email_inbox():
     # Fetch and return inbox emails
     emails = [
-        {"id": 1, "subject": "Welcome!", "body": "Welcome to Epic Mail!", "sender": "admin@epicmail.com"},
-        {"id": 2, "subject": "Update", "body": "Your account has been updated.", "sender": "support@epicmail.com"}
+        {"from": "ethan63510.edu", "subject": "Hello!", "message": "This is a test email.", "category": "all", "read": False},
+        {"from": "adg42902@uga.edu", "subject": "Meeting Reminder", "message": "Don't forget our project meeting at 3 AM.", "category": "work", "read": True},
+        {"from": "thv35131@uga.edu", "subject": "Epic Project Update", "message": "The latest project updates are in.", "category": "work", "read": False},
+        {"from": "professor@uga.edu", "subject": "Assignment Due", "message": "Your final project is due next week.", "category": "school", "read": True},
+        {"from": "newsletter@tech.com", "subject": "Weekly Updates", "message": "Here are the latest tech news.", "category": "subscriptions", "read": False}
     ]
     return jsonify({"message": "Inbox emails fetched successfully", "emails": emails}), 200
 
