@@ -13,7 +13,7 @@ Running your virtual environment
 Windows:
 ```
 cd server
-.\.<env_name>\Scripts\activate
+.\<env_name>\Scripts\activate
 ```
 macOS:
 ```
