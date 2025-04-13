@@ -27,9 +27,10 @@ interface EmailInboxProps {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        console.log(data.message); // Log the message from the response
         setEmails(data.emails); // Assuming the response has an "emails" field
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An unknown error occurred");
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "An unknown error occurred");
       }
     };
   
@@ -65,6 +66,9 @@ interface EmailInboxProps {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        {/* Error Message */}
+        {error && <div className="error-message">{error}</div>}
+        
         {/* Email List */}
         <ul className="inbox__list">
           {filteredEmails.map((email, index) => (
