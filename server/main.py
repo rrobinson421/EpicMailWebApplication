@@ -11,6 +11,10 @@ def init_db():
     """Initialize the SQLite database and create the users table if it doesn't exist."""
     conn = sqlite3.connect("users.db")
     cursor = conn.cursor()
+
+    # Drop the users table if it exists
+    # cursor.execute("DROP TABLE IF EXISTS users")
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
