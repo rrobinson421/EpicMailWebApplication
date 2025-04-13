@@ -1,8 +1,25 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import sqlite3
 
 # TODO: Include some WSGI server instead of running from Flask eventually
-
+database = sqlite3.connect('users.db')
+cursor = database.cursor()
+user1 = "hello"
+pass1 = "world"
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL
+    )
+''')
+try:
+    cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (user1, pass1))
+except sqlite3.IntegrityError:
+    print("hi")
+database.commit()
+database.close()
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
 
@@ -10,15 +27,30 @@ CORS(app, origins=["http://localhost:5173"])
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
+
     # Process registration data
     return jsonify({"message": "User registered successfully", "data": data}), 201
 
 # Route for user login
 @app.route('/login', methods=['POST'])
 def login():
+    print(f"Raw request data: {request.data}")
     data = request.json
     # Process login data
-    return jsonify({"message": "User logged in successfully", "data": data}), 200
+    username = data.get('username')
+    password = data.get('password')
+    print(f"Username: {username}, Password: {password}")
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
+    user = cursor.fetchone()
+    conn.close()
+
+    if user:
+        return jsonify({"message": "✅ Login successful!", "username": username}), 200
+    else:
+        return jsonify({"error": "❌ Invalid username or password", "username": username, "password": password}), 401
+
 
 # Route for email management
 @app.route('/email-management', methods=['GET'])
