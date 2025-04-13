@@ -23,6 +23,7 @@ const LoginPage: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Login successful:', data);
+        localStorage.setItem('userEmail', data.email); // Store email in local storage
         navigate('/email-management'); // Redirect on successful login
       } else {
         const errorData = await response.json();

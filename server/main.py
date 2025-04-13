@@ -7,7 +7,7 @@ import sqlite3
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
 
-def init_db():
+def init_user_db():
     """Initialize the SQLite database and create the users table if it doesn't exist."""
     conn = sqlite3.connect("users.db")
     cursor = conn.cursor()
@@ -38,8 +38,64 @@ def init_db():
     conn.commit()
     conn.close()
 
-init_db()
+def init_email_db():
+    """Create an individual email database for each registered user in users.db."""
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
 
+    # Fetch all registered users
+    cursor.execute("SELECT email FROM users")
+    users = cursor.fetchall()
+    conn.close()
+
+    for (email,) in users:
+        # Create a database file for each user based on their email
+        db_name = f"{email.replace('@', '_').replace('.', '_')}_emails.db"
+        email_conn = sqlite3.connect(db_name)
+        email_cursor = email_conn.cursor()
+
+        # Create the emails table for the user
+        email_cursor.execute('''
+            CREATE TABLE IF NOT EXISTS emails (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                "from" TEXT NOT NULL,
+                "to" TEXT NOT NULL,
+                subject TEXT NOT NULL,
+                message TEXT NOT NULL,
+                category TEXT NOT NULL,
+                read BOOLEAN NOT NULL DEFAULT 0
+            )
+        ''')
+
+        # Check if the default email already exists
+        email_cursor.execute("SELECT * FROM emails WHERE subject = 'Welcome to Epic Mail!' AND \"from\" = 'admin@epicmail.com'")
+        default_email_exists = email_cursor.fetchone()
+
+        if not default_email_exists:
+            # Insert the default email into the emails table
+            default_email = {
+                "from": "admin@epicmail.com",
+                "to": email,
+                "subject": "Welcome to Epic Mail!",
+                "message": "This is your first email. Enjoy using Epic Mail!",
+                "category": "all",
+                "read": False
+            }
+            email_cursor.execute('''
+                INSERT INTO emails ("from", "to", subject, message, category, read)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (default_email["from"], default_email["to"], default_email["subject"],
+                  default_email["message"], default_email["category"], default_email["read"]))
+
+        email_conn.commit()
+        email_conn.close()
+
+    print("Email databases initialized for all registered users.")
+
+init_user_db()
+init_email_db()
+
+# TODO: update local user databases
 # Route for user registration
 @app.route('/register', methods=['POST'])
 def register():
@@ -94,18 +150,46 @@ def email_send():
     return jsonify({"message": "Email sent successfully", "data": email_data}), 200
 
 # Route for fetching inbox emails
-# TODO: Determine how to select category
-@app.route('/email-inbox', methods=['GET'])
+# TODO: Determine how to select category, update the to: format, and mark as read
+@app.route('/email-inbox', methods=['POST'])
 def email_inbox():
-    # Fetch and return inbox emails
-    emails = [
-        {"from": "ethan63510.edu", "subject": "Hello!", "message": "This is a test email.", "category": "all", "read": False},
-        {"from": "adg42902@uga.edu", "subject": "Meeting Reminder", "message": "Don't forget our project meeting at 3 AM.", "category": "work", "read": True},
-        {"from": "thv35131@uga.edu", "subject": "Epic Project Update", "message": "The latest project updates are in.", "category": "work", "read": False},
-        {"from": "professor@uga.edu", "subject": "Assignment Due", "message": "Your final project is due next week.", "category": "school", "read": True},
-        {"from": "newsletter@tech.com", "subject": "Weekly Updates", "message": "Here are the latest tech news.", "category": "subscriptions", "read": False}
-    ]
-    return jsonify({"message": "Inbox emails fetched successfully", "emails": emails}), 200
+    data = request.json
+    user_email = data.get("email")  # Get the logged-in user's email
+
+    if not user_email:
+        return jsonify({"message": "User email is required"}), 400
+
+    # Generate the database name for the user
+    db_name = f"{user_email.replace('@', '_').replace('.', '_')}_emails.db"
+    print(db_name)
+
+    try:
+        # Connect to the user's email database
+        email_conn = sqlite3.connect(db_name)
+        email_cursor = email_conn.cursor()
+
+        # Fetch all emails from the user's email database
+        email_cursor.execute("SELECT * FROM emails")
+        emails = email_cursor.fetchall()
+
+        # Map the emails to a dictionary format
+        email_list = [
+            {
+                "id": email[0],
+                "from": email[1],
+                "to": email[2],
+                "subject": email[3],
+                "message": email[4],
+                "category": email[5],
+                "read": bool(email[6]),
+            }
+            for email in emails
+        ]
+
+        email_conn.close()
+        return jsonify({"message": "Inbox emails fetched successfully", "emails": email_list}), 200
+    except sqlite3.Error as e:
+        return jsonify({"message": f"Error fetching emails: {str(e)}"}), 500
 
 # Default route
 @app.route('/')

@@ -3,7 +3,9 @@ import Sidebar from "./Sidebar";
 import "/src/styles/EmailInboxStyle.css";
 
 export interface Email {
+  id: number;
   from: string;
+  to: string;
   subject: string;
   message: string;
   category: string;
@@ -14,29 +16,39 @@ interface EmailInboxProps {
   onEmailClick: (email: Email) => void; // Prop to handle email click
 }
 
-  const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick }) => {
-    const [emails, setEmails] = useState<Email[]>([]);
-    const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState("all");
-  
-    // Fetch emails from the Flask backend
-    const fetchEmails = async () => {
-      try {
-        const response = await fetch("http://127.0.0.1:5000/email-inbox");
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log(data.message); // Log the message from the response
-        setEmails(data.emails); // Assuming the response has an "emails" field
-      } catch (error) {
-        setError(error instanceof Error ? error.message : "An unknown error occurred");
+const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick}) => {
+  const [emails, setEmails] = useState<Email[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("all");
+
+  const fetchEmails = async () => {
+    const userEmail = localStorage.getItem("userEmail"); // Retrieve email from local storage
+    if (!userEmail) {
+      setError("User email not found in local storage.");
+      return;
+    }
+    try {
+      const response = await fetch("http://127.0.0.1:5000/email-inbox", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userEmail }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch emails");
       }
-    };
-  
-    useEffect(() => {
-      fetchEmails();
-    }, []);
+
+      const data = await response.json();
+      setEmails(data.emails); // Set the fetched emails
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
+    }
+  };
+
+  useEffect(() => {
+    fetchEmails();
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState<string>("");
 
