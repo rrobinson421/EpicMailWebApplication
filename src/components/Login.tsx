@@ -15,7 +15,7 @@ const LoginPage: React.FC = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: email, // Assuming the backend expects "username"
+          email: email, // Assuming the backend expects "username"
           password: password,
         }),
       });

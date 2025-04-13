@@ -3,33 +3,58 @@ from flask_cors import CORS
 import sqlite3
 
 # TODO: Include some WSGI server instead of running from Flask eventually
-database = sqlite3.connect('users.db')
-cursor = database.cursor()
-user1 = "hello"
-pass1 = "world"
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL
-    )
-''')
-try:
-    cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (user1, pass1))
-except sqlite3.IntegrityError:
-    print("hi")
-database.commit()
-database.close()
+
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
+
+def init_db():
+    """Initialize the SQLite database and create the users table if it doesn't exist."""
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+
+    # Insert example users only if they don't already exist
+    example_users = [
+        ("user1@example.com", "password123"),
+        ("user2@example.com", "securepass"),
+        ("user3@example.com", "mypassword")
+    ]
+    for email, password in example_users:
+        cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+        if cursor.fetchone() is None:  # Check if the user already exists
+            cursor.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, password))
+
+    conn.commit()
+    conn.close()
+
+init_db()
 
 # Route for user registration
 @app.route('/register', methods=['POST'])
 def register():
     data = request.json
+    email = data.get("email")
+    password = data.get("password")
 
-    # Process registration data
-    return jsonify({"message": "User registered successfully", "data": data}), 201
+    if not email or not password:
+        return jsonify({"message": "Email and password are required"}), 400
+
+    try:
+        conn = sqlite3.connect("users.db")
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, password))
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "User registered successfully"}), 201
+    except sqlite3.IntegrityError:
+        return jsonify({"message": "User with this email already exists"}), 400
 
 # Route for user login
 @app.route('/login', methods=['POST'])
@@ -37,21 +62,20 @@ def login():
     print(f"Raw request data: {request.data}")
     data = request.json
     # Process login data
-    username = data.get('username')
+    email = data.get('email')
     password = data.get('password')
-    print(f"Username: {username}, Password: {password}")
+    print(f"Username: {email}, Password: {password}")
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
+    cursor.execute('SELECT * FROM users WHERE email = ? AND password = ?', (email, password))
     user = cursor.fetchone()
     conn.close()
 
     if user:
-        return jsonify({"message": "✅ Login successful!", "username": username}), 200
+        return jsonify({"message": "✅ Login successful!", "email": email}), 200
     else:
-        return jsonify({"error": "❌ Invalid username or password", "username": username, "password": password}), 401
-
-
+        return jsonify({"error": "❌ Invalid email or password", "email": email, "password": password}), 401
+    
 # Route for email management
 @app.route('/email-management', methods=['GET'])
 def email_management():
@@ -66,6 +90,7 @@ def email_send():
     return jsonify({"message": "Email sent successfully", "data": email_data}), 200
 
 # Route for fetching inbox emails
+# TODO: Determine how to select category
 @app.route('/email-inbox', methods=['GET'])
 def email_inbox():
     # Fetch and return inbox emails
