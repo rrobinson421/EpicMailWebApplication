@@ -15,7 +15,10 @@ def init_user_db():
     cursor = conn.cursor()
 
     # Drop the users table if it exists
-    # cursor.execute("DROP TABLE IF EXISTS users")
+    cursor.execute("DROP TABLE IF EXISTS users")
+    cursor.execute("DROP TABLE IF EXISTS inbox")
+
+    conn.execute("PRAGMA foreign_keys = ON") 
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
@@ -33,7 +36,7 @@ def init_user_db():
             message TEXT NOT NULL,
             category TEXT NOT NULL,
             read BOOLEAN NOT NULL DEFAULT 0
-            foreign key ("to") reference users(email) on delete   
+            FOREIGN KEY ("to") REFERENCES users(email) on delete   
         )
     ''')
     conn.commit()
@@ -233,8 +236,8 @@ def email_inbox():
         return jsonify({"message": "User email is required"}), 400
 
     # Generate the database name for the user
-    db_name = f"{user_email.replace('@', '_').replace('.', '_')}_emails.db"
-    print(db_name)
+    #db_name = f"{user_email.replace('@', '_').replace('.', '_')}_emails.db"
+    #print(db_name)
 
     try:
         # Connect to the user's email database
