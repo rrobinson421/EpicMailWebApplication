@@ -35,8 +35,8 @@ def init_user_db():
             subject TEXT NOT NULL,
             message TEXT NOT NULL,
             category TEXT NOT NULL,
-            read BOOLEAN NOT NULL DEFAULT 0
-            FOREIGN KEY ("to") REFERENCES users(email) on delete   
+            read BOOLEAN NOT NULL DEFAULT 0,
+            FOREIGN KEY ("to") REFERENCES users(email)
         )
     ''')
     conn.commit()
@@ -51,8 +51,8 @@ def init_user_db():
         cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
         if cursor.fetchone() is None:  # Check if the user already exists
             cursor.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, password))
-    for (email,) in example_users:
-        cursor.execute("SELECT * FROM emails WHERE subject = 'Welcome to Epic Mail!' AND \"from\" = 'admin@epicmail.com' AND \"t o\" = (?)", (email))
+    for email, password in example_users:
+        cursor.execute("SELECT * FROM inbox WHERE subject = 'Welcome to Epic Mail!' AND \"from\" = 'admin@epicmail.com' AND \"to\" = ?", (email,))
         default_email_exists = cursor.fetchone()
         username = email.split('@')[0]
 
@@ -67,7 +67,7 @@ def init_user_db():
                 "read": False
             }
             cursor.execute('''
-                INSERT INTO emails ("from", "to", subject, message, category, read)
+                INSERT INTO inbox ("from", "to", subject, message, category, read)
                 VALUES (?, ?, ?, ?, ?, ?)
             ''', (default_email["from"], default_email["to"], default_email["subject"],
                   default_email["message"], default_email["category"], default_email["read"]))
@@ -180,7 +180,7 @@ def register():
             "read": False
         }
         cursor.execute('''
-            INSERT INTO emails ("from", "to", subject, message, category, read)
+            INSERT INTO inbox ("from", "to", subject, message, category, read)
             VALUES (?, ?, ?, ?, ?, ?)
         ''', (default_email["from"], default_email["to"], default_email["subject"],
               default_email["message"], default_email["category"], default_email["read"]))
@@ -231,7 +231,7 @@ def email_send():
 def email_inbox():
     data = request.json
     user_email = data.get("email")  # Get the logged-in user's email
-
+    print(user_email)
     if not user_email:
         return jsonify({"message": "User email is required"}), 400
 
@@ -244,8 +244,8 @@ def email_inbox():
         conn = sqlite3.connect("users.db")
         cursor = conn.cursor()
 
-        # Fetch all emails from the user's email database
-        cursor.execute("SELECT * FROM emails")
+        # Fetch all emails from the user's inbox
+        cursor.execute("SELECT * FROM inbox WHERE \"to\" = (?)", (user_email,))
         emails = cursor.fetchall()
 
         # Map the emails to a dictionary format
