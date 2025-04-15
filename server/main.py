@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
+#from sqlalchemy import create_engine, Column, Integer, String, UniqueConstraint
+#from sqlalchemy.ext.declarative import declarative_base
 
 # TODO: Include some WSGI server instead of running from Flask eventually
 
@@ -19,7 +21,19 @@ def init_user_db():
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
+            password TEXT UNIQUE NOT NULL
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS inbox (
+            eid INTEGER PRIMARY KEY AUTOINCREMENT,
+            "from" TEXT NOT NULL,
+            "to" TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            message TEXT NOT NULL,
+            category TEXT NOT NULL,
+            read BOOLEAN NOT NULL DEFAULT 0
+            foreign key ("to") reference users(email) on delete   
         )
     ''')
     conn.commit()
@@ -34,6 +48,26 @@ def init_user_db():
         cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
         if cursor.fetchone() is None:  # Check if the user already exists
             cursor.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, password))
+    for (email,) in example_users:
+        cursor.execute("SELECT * FROM emails WHERE subject = 'Welcome to Epic Mail!' AND \"from\" = 'admin@epicmail.com' AND \"t o\" = (?)", (email))
+        default_email_exists = cursor.fetchone()
+        username = email.split('@')[0]
+
+        if not default_email_exists:
+            # Insert the default email into the emails table
+            default_email = {
+                "from": "admin@epicmail.com",
+                "to": email,
+                "subject": "Welcome to Epic Mail!",
+                "message": "Welcome " + username + "! Enjoy using Epic Mail!",
+                "category": "all",
+                "read": False
+            }
+            cursor.execute('''
+                INSERT INTO emails ("from", "to", subject, message, category, read)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (default_email["from"], default_email["to"], default_email["subject"],
+                  default_email["message"], default_email["category"], default_email["read"]))
 
     conn.commit()
     conn.close()
@@ -94,7 +128,7 @@ def init_email_db():
     print("Email databases initialized for all registered users.")
 
 init_user_db()
-init_email_db()
+#init_email_db()
 
 # TODO: update local user databases
 # Route for user registration
@@ -112,25 +146,25 @@ def register():
         cursor = conn.cursor()
         cursor.execute("INSERT INTO users (email, password) VALUES (?, ?)", (email, password))
         conn.commit()
-        conn.close()
+        #conn.close()
 
     # Create the user's email database and send the default email
-        db_name = f"{email.replace('@', '_').replace('.', '_')}_emails.db"
-        email_conn = sqlite3.connect(db_name)
-        email_cursor = email_conn.cursor()
+        #db_name = f"{email.replace('@', '_').replace('.', '_')}_emails.db"
+        #email_conn = sqlite3.connect(db_name)
+        #email_cursor = email_conn.cursor()
 
         # Create the emails table for the user
-        email_cursor.execute('''
-            CREATE TABLE IF NOT EXISTS emails (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                "from" TEXT NOT NULL,
-                "to" TEXT NOT NULL,
-                subject TEXT NOT NULL,
-                message TEXT NOT NULL,
-                category TEXT NOT NULL,
-                read BOOLEAN NOT NULL DEFAULT 0
-            )
-        ''')
+        #email_cursor.execute('''
+            #CREATE TABLE IF NOT EXISTS emails (
+                #id INTEGER PRIMARY KEY AUTOINCREMENT,
+                #"from" TEXT NOT NULL,
+                #"to" TEXT NOT NULL,
+                #subject TEXT NOT NULL,
+                #message TEXT NOT NULL,
+                #category TEXT NOT NULL,
+                #read BOOLEAN NOT NULL DEFAULT 0
+            #)
+        #''')
 
         # Insert the default email into the emails table
         username = email.split('@')[0]
@@ -142,14 +176,14 @@ def register():
             "category": "welcome",
             "read": False
         }
-        email_cursor.execute('''
+        cursor.execute('''
             INSERT INTO emails ("from", "to", subject, message, category, read)
             VALUES (?, ?, ?, ?, ?, ?)
         ''', (default_email["from"], default_email["to"], default_email["subject"],
               default_email["message"], default_email["category"], default_email["read"]))
 
-        email_conn.commit()
-        email_conn.close()
+        conn.commit()
+        cursor.close()
 
         return jsonify({"message": "User registered successfully"}), 201
     except sqlite3.IntegrityError:
@@ -204,12 +238,12 @@ def email_inbox():
 
     try:
         # Connect to the user's email database
-        email_conn = sqlite3.connect(db_name)
-        email_cursor = email_conn.cursor()
+        conn = sqlite3.connect("users.db")
+        cursor = conn.cursor()
 
         # Fetch all emails from the user's email database
-        email_cursor.execute("SELECT * FROM emails")
-        emails = email_cursor.fetchall()
+        cursor.execute("SELECT * FROM emails")
+        emails = cursor.fetchall()
 
         # Map the emails to a dictionary format
         email_list = [
@@ -225,7 +259,7 @@ def email_inbox():
             for email in emails
         ]
 
-        email_conn.close()
+        conn.close()
         return jsonify({"message": "Inbox emails fetched successfully", "emails": email_list}), 200
     except sqlite3.Error as e:
         return jsonify({"message": f"Error fetching emails: {str(e)}"}), 500
