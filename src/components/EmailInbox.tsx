@@ -22,6 +22,7 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick}) => {
   const [activeTab, setActiveTab] = useState("all");
 
   const fetchEmails = async () => {
+    console.log("Fetching emails...");
     const userEmail = localStorage.getItem("userEmail"); // Retrieve email from local storage
     if (!userEmail) {
       setError("User email not found in local storage.");
