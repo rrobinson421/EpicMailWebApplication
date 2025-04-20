@@ -138,10 +138,84 @@ def login():
         return jsonify({"error": "❌ Invalid email or password", "email": email, "password": password}), 401
     
 # Route for email management
-@app.route('/email-management', methods=['GET'])
+@app.route('/email-management', methods=['POST'])
 def email_management():
-    # Fetch and return email management data
-    return jsonify({"message": "Email management data fetched successfully"}), 200
+    data = request.json
+    action = data.get("action")  # "reply" or "forward"
+    original_email_id = data.get("email_id")  # ID of the email being replied to or forwarded
+    new_email_data = data.get("email_data")  # New email details (to, subject, message, etc.)
+
+    if action == "mark-as-read":
+        # Mark the email as read
+        if not original_email_id:
+            return jsonify({"message": "Email ID is required to mark as read"}), 400
+
+        try:
+            conn = sqlite3.connect("users.db")
+            cursor = conn.cursor()
+
+            # Update the read status of the email
+            cursor.execute("UPDATE inbox SET read = 1 WHERE eid = ?", (original_email_id,))
+            conn.commit()
+            conn.close()
+
+            return jsonify({"message": "Email marked as read"}), 200
+        except sqlite3.Error as e:
+            return jsonify({"message": f"Error updating email read status: {str(e)}"}), 500
+
+    if not action or not original_email_id or not new_email_data:
+        return jsonify({"message": "Action, email ID, and email data are required"}), 400
+
+    try:
+        conn = sqlite3.connect("users.db")
+        cursor = conn.cursor()
+
+        # Fetch the original email
+        cursor.execute("SELECT * FROM inbox WHERE eid = ?", (original_email_id,))
+        original_email = cursor.fetchone()
+        if not original_email:
+            return jsonify({"message": "Original email not found"}), 404
+
+        # Validate the recipient
+        recipient_email = new_email_data.get("to")
+        cursor.execute("SELECT * FROM users WHERE email = ?", (recipient_email,))
+        recipient = cursor.fetchone()
+        if not recipient:
+            return jsonify({"message": f"Recipient email '{recipient_email}' is not registered"}), 400
+
+        # Create the new email
+        original_message = original_email[4]  # Assuming the 5th column is the message body
+        if action == "reply":
+            # Format the reply message
+            new_message = f"--- Reply ---\n\n{new_email_data.get('message')}\n\n--- Original Message ---\nFrom: {original_email[1]}\nTo: {original_email[2]}\nSubject: {original_email[3]}\n\n{original_message}"
+        elif action == "forward":
+            # Format the forwarded message
+            new_message = f"--- Forwarded Message ---\nFrom: {original_email[1]}\nTo: {original_email[2]}\nSubject: {original_email[3]}\n\n{original_message}\n\n{new_email_data.get('message')}"
+        else:
+            return jsonify({"message": "Invalid action"}), 400
+
+        new_email = {
+            "from": new_email_data.get("from"),
+            "to": new_email_data.get("to"),
+            "subject": f"Re: {original_email[3]}" if action == "reply" else f"Fwd: {original_email[3]}",
+            "message": new_message,
+            "category": "all",
+            "read": False  # Automatically mark as unread
+        }
+
+        # Insert the new email into the inbox
+        cursor.execute('''
+            INSERT INTO inbox ("from", "to", subject, message, category, read)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (new_email["from"], new_email["to"], new_email["subject"],
+              new_email["message"], new_email["category"], new_email["read"]))
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({"message": f"Email {action}ed successfully"}), 200
+    except sqlite3.Error as e:
+        return jsonify({"message": f"Error processing email: {str(e)}"}), 500
 
 # Route for sending an email
 @app.route('/email-send', methods=['POST'])

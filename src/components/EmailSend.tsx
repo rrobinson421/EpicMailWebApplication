@@ -18,15 +18,15 @@ const EmailSend: React.FC<EmailSendProps> = ({ onSubmit }) => {
     const emailData = { to, subject, message };
     onSubmit(emailData); // Call the parent onSubmit function with the email data
     try {
-      const response = await fetch("http://127.0.0.1:5000/email-send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+      const response = await fetch('http://127.0.0.1:5000/email-send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            from: localStorage.getItem("userEmail"),
+            from: localStorage.getItem('userEmail'),
             to: to,
             subject: subject,
             message: message,
-            category: "email",
+            category: 'email',
           }),
         });
       if (response.ok) {
