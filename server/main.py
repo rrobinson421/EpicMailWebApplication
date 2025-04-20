@@ -158,6 +158,13 @@ def email_management():
         if not original_email:
             return jsonify({"message": "Original email not found"}), 404
 
+        # Validate the recipient
+        recipient_email = new_email_data.get("to")
+        cursor.execute("SELECT * FROM users WHERE email = ?", (recipient_email,))
+        recipient = cursor.fetchone()
+        if not recipient:
+            return jsonify({"message": f"Recipient email '{recipient_email}' is not registered"}), 400
+
         # Create the new email
         original_message = original_email[4]  # Assuming the 5th column is the message body
         if action == "reply":
