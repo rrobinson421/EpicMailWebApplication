@@ -148,6 +148,34 @@ def email_management():
 def email_send():
     email_data = request.json
     # Process email sending
+    print(f"Raw request data: {request.data}")
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE email = ?", (email_data.get("to"),))
+    user = cursor.fetchone()
+    if not user:
+        return jsonify({"message": "Reciever email not registered"}), 400
+    # Check if the reciever email is registered
+
+    # Create the email
+    new_email = {
+        "from": email_data.get("from"),
+        "to": email_data.get("to"),
+        "subject": email_data.get("subject"),
+        "message": email_data.get("message"),
+        "category": email_data.get("category"),
+        "read": False
+    }
+
+    # Add the email to the database
+    cursor.execute('''
+                INSERT INTO inbox ("from", "to", subject, message, category, read)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (new_email["from"], new_email["to"], new_email["subject"],
+                  new_email["message"], new_email["category"], new_email["read"]))
+    # Connect to the database
+    conn.commit()
+    conn.close()
     return jsonify({"message": "Email sent successfully", "data": email_data}), 200
 
 # Route for fetching inbox emails
@@ -164,6 +192,7 @@ def email_inbox():
         # Connect to the user's email database
         conn = sqlite3.connect("users.db")
         cursor = conn.cursor()
+        # Connect to the database
 
         # Fetch all emails from the user's inbox
         cursor.execute("SELECT * FROM inbox WHERE \"to\" = (?)", (user_email,))
