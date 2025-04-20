@@ -17,12 +17,31 @@ const EmailManagement: React.FC = () => {
   const navigate = useNavigate();
 
   // Handle email selection
-  const handleEmailClick = (email: Email) => {
+  const handleEmailClick = async (email: Email) => {
     setSelectedEmail(email);
     setIsEmailView(true);
     setIsReplying(false);
     setIsForwarding(false);
     setMessage('');
+
+    try {
+      // Send a request to mark the email as read
+      const response = await fetch('http://127.0.0.1:5000/email-management', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+              action: 'mark-as-read',
+              email_id: email.id,
+          }),
+      });
+
+      if (!response.ok) {
+          const errorData = await response.json();
+          console.error('Failed to update read status:', errorData.message);
+      }
+  } catch (err) {
+      console.error('Error updating read status:', err);
+  }
   };
 
   // Go back to compose email view

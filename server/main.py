@@ -145,6 +145,24 @@ def email_management():
     original_email_id = data.get("email_id")  # ID of the email being replied to or forwarded
     new_email_data = data.get("email_data")  # New email details (to, subject, message, etc.)
 
+    if action == "mark-as-read":
+        # Mark the email as read
+        if not original_email_id:
+            return jsonify({"message": "Email ID is required to mark as read"}), 400
+
+        try:
+            conn = sqlite3.connect("users.db")
+            cursor = conn.cursor()
+
+            # Update the read status of the email
+            cursor.execute("UPDATE inbox SET read = 1 WHERE eid = ?", (original_email_id,))
+            conn.commit()
+            conn.close()
+
+            return jsonify({"message": "Email marked as read"}), 200
+        except sqlite3.Error as e:
+            return jsonify({"message": f"Error updating email read status: {str(e)}"}), 500
+
     if not action or not original_email_id or not new_email_data:
         return jsonify({"message": "Action, email ID, and email data are required"}), 400
 
