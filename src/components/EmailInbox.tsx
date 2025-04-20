@@ -20,6 +20,8 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick}) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [refreshKey, setRefreshKey] = useState(0); // State to trigger re-fetching emails
 
   const fetchEmails = async () => {
     console.log("Fetching emails...");
@@ -49,13 +51,41 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick}) => {
 
   useEffect(() => {
     fetchEmails();
-  }, []);
+  }, [refreshKey]);
 
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const handleEmailClick = async (email: Email) => {
+    try {
+      // Mark the email as read
+      const response = await fetch("http://127.0.0.1:5000/email-management", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "mark-as-read",
+          email_id: email.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Failed to mark email as read:", errorData.message);
+        return;
+      }
+
+      // Trigger a refresh by updating the refreshKey
+      setRefreshKey((prevKey) => prevKey + 1);
+    } catch (err) {
+      console.error("Error marking email as read:", err);
+    }
+
+    // Pass the email to the parent component (if needed)
+    onEmailClick(email);
+    // setActiveTab("all");
+  };
 
   // Combine search and category filters
   const filteredEmails = emails.filter((email) => {
-    const matchesCategory = activeTab === "all" || email.category === activeTab;
+    const matchesCategory = activeTab === "all" || (activeTab === "unread" && !email.read) || // Filter unread emails
+    email.category === activeTab;
     const matchesSearchQuery =
       email.from.toLowerCase().includes(searchQuery.toLowerCase()) ||
       email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -88,7 +118,7 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick}) => {
             <li
               key={index}
               className={`inbox__item ${!email.read ? "unread" : ""}`}
-              onClick={() => onEmailClick(email)}
+              onClick={() => handleEmailClick(email)}
             >
               <strong>From:</strong> {email.from} <br />
               <strong>Subject:</strong> {email.subject} <br />
