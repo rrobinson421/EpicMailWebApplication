@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import EmailSend from './EmailSend';
-import EmailInbox from './EmailInbox';
-import { Email } from './EmailInbox';
-import '/src/styles/EmailManagementStyle.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import EmailSend from "./EmailSend";
+import EmailInbox from "./EmailInbox";
+import { Email } from "./EmailInbox";
+import "/src/styles/EmailManagementStyle.css";
 
 const EmailManagement: React.FC = () => {
   const [isEmailView, setIsEmailView] = useState<boolean>(false);
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
-  const [replyMessage, setReplyMessage] = useState<string>('');
-  const [forwardRecipient, setForwardRecipient] = useState<string>('');
+  const [replyMessage, setReplyMessage] = useState<string>("");
+  const [forwardRecipient, setForwardRecipient] = useState<string>("");
   const [isReplying, setIsReplying] = useState<boolean>(false);
   const [isForwarding, setIsForwarding] = useState<boolean>(false);
-  const [message, setMessage] = useState<string>('');
-  const [messageType, setMessageType] = useState<'success' | 'error' | ''>('');
+  const [message, setMessage] = useState<string>("");
+  const [messageType, setMessageType] = useState<"success" | "error" | "">("");
   const navigate = useNavigate();
 
   // Handle email selection
@@ -22,26 +22,26 @@ const EmailManagement: React.FC = () => {
     setIsEmailView(true);
     setIsReplying(false);
     setIsForwarding(false);
-    setMessage('');
+    setMessage("");
 
     try {
       // Send a request to mark the email as read
-      const response = await fetch('http://127.0.0.1:5000/email-management', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-              action: 'mark-as-read',
-              email_id: email.id,
-          }),
+      const response = await fetch("http://127.0.0.1:5000/email-management", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "mark-as-read",
+          email_id: email.id,
+        }),
       });
 
       if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Failed to update read status:', errorData.message);
+        const errorData = await response.json();
+        console.error("Failed to update read status:", errorData.message);
       }
-  } catch (err) {
-      console.error('Error updating read status:', err);
-  }
+    } catch (err) {
+      console.error("Error updating read status:", err);
+    }
   };
 
   // Go back to compose email view
@@ -50,44 +50,44 @@ const EmailManagement: React.FC = () => {
     setSelectedEmail(null);
     setIsReplying(false);
     setIsForwarding(false);
-    setMessage('');
+    setMessage("");
   };
 
   // Handle reply action
   const handleReply = () => {
     setIsReplying(true);
     setIsForwarding(false);
-    setMessage('');
+    setMessage("");
   };
 
   // Handle forward action
   const handleForward = () => {
     setIsForwarding(true);
     setIsReplying(false);
-    setMessage('');
+    setMessage("");
   };
 
   // Submit reply
   const handleReplySubmit = async () => {
-    if (replyMessage.trim() === '') {
-      setMessage('Please enter a reply message.');
-      setMessageType('error');
+    if (replyMessage.trim() === "") {
+      setMessage("Please enter a reply message.");
+      setMessageType("error");
       return;
     }
 
     try {
-      const userEmail = localStorage.getItem('userEmail');
+      const userEmail = localStorage.getItem("userEmail");
       if (!userEmail || !selectedEmail) {
-        setMessage('User email or selected email not found.');
-        setMessageType('error');
+        setMessage("User email or selected email not found.");
+        setMessageType("error");
         return;
       }
 
-      const response = await fetch('http://127.0.0.1:5000/email-management', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://127.0.0.1:5000/email-management", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: 'reply',
+          action: "reply",
           email_id: selectedEmail.id,
           email_data: {
             from: userEmail,
@@ -99,34 +99,36 @@ const EmailManagement: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to send reply');
+        throw new Error(errorData.message || "Failed to send reply");
       }
 
-      setMessage('Reply sent successfully!');
-      setMessageType('success');
-      setReplyMessage('');
+      setMessage("Reply sent successfully!");
+      setMessageType("success");
+      setReplyMessage("");
       setIsReplying(false);
 
-      setTimeout(() => setMessage(''), 5000);
+      setTimeout(() => setMessage(""), 5000);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'An unknown error occurred');
-      setMessageType('error');
+      setMessage(
+        err instanceof Error ? err.message : "An unknown error occurred"
+      );
+      setMessageType("error");
     }
   };
 
   // Submit forward
   const handleForwardSubmit = async () => {
-    if (forwardRecipient.trim() === '') {
-      setMessage('Please enter a valid email address to forward the email.');
-      setMessageType('error');
+    if (forwardRecipient.trim() === "") {
+      setMessage("Please enter a valid email address to forward the email.");
+      setMessageType("error");
       return;
     }
 
     try {
-      const userEmail = localStorage.getItem('userEmail');
+      const userEmail = localStorage.getItem("userEmail");
       if (!userEmail || !selectedEmail) {
-        setMessage('User email or selected email not found.');
-        setMessageType('error');
+        setMessage("User email or selected email not found.");
+        setMessageType("error");
         return;
       }
 
@@ -134,36 +136,38 @@ const EmailManagement: React.FC = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: 'forward',
+          action: "forward",
           email_id: selectedEmail.id,
           email_data: {
             from: userEmail,
             to: forwardRecipient,
-            message: '',
+            message: "",
           },
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to forward email');
+        throw new Error(errorData.message || "Failed to forward email");
       }
 
-      setMessage('Email forwarded successfully!');
-      setMessageType('success');
-      setForwardRecipient('');
+      setMessage("Email forwarded successfully!");
+      setMessageType("success");
+      setForwardRecipient("");
       setIsForwarding(false);
 
-      setTimeout(() => setMessage(''), 5000);
+      setTimeout(() => setMessage(""), 5000);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'An unknown error occurred');
-      setMessageType('error');
+      setMessage(
+        err instanceof Error ? err.message : "An unknown error occurred"
+      );
+      setMessageType("error");
     }
   };
 
   // Handle logout
   const handleLogout = () => {
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -174,6 +178,7 @@ const EmailManagement: React.FC = () => {
         </div>
 
         <div className="email-view">
+          <button onClick={handleBackToCompose}>New Email</button>
           {isEmailView ? (
             <div className="email-expanded">
               <h3>From: {selectedEmail?.from}</h3>
@@ -214,7 +219,9 @@ const EmailManagement: React.FC = () => {
           )}
 
           {/* Success/Error Message */}
-          {message && <p className={`success-message ${messageType}`}>{message}</p>}
+          {message && (
+            <p className={`success-message ${messageType}`}>{message}</p>
+          )}
         </div>
       </div>
 
