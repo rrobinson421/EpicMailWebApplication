@@ -11,24 +11,43 @@ const EmailSend: React.FC<EmailSendProps> = ({ onSubmit }) => {
   const [message, setMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent the default form submission
 
     const emailData = { to, subject, message };
     onSubmit(emailData); // Call the parent onSubmit function with the email data
+    try {
+      const response = await fetch("http://127.0.0.1:5000/email-send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from: localStorage.getItem("userEmail"),
+            to: to,
+            subject: subject,
+            message: message,
+            category: "email",
+          }),
+        });
+      if (response.ok) {
+        setSuccessMessage('Email sent successfully!');
+      } else {
+        alert('Error sending email. Please try again.');
+      }
 
-    // Set success message after sending the email
-    setSuccessMessage('Email sent successfully!');
+      // Hide the success message after 5 seconds
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 5000);
 
-    // Hide the success message after 5 seconds
-    setTimeout(() => {
-      setSuccessMessage('');
-    }, 5000);
-
-    // Optionally reset the form
-    setTo('');
-    setSubject('');
-    setMessage('');
+      // Optionally reset the form
+      setTo('');
+      setSubject('');
+      setMessage('');
+    } catch (error) {
+      console.error('Error during login:', error);
+      alert('An error occurred. Please try again.');
+    }
   };
 
   // Render the email send form

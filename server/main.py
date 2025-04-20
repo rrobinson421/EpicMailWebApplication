@@ -148,20 +148,14 @@ def email_management():
 def email_send():
     email_data = request.json
     # Process email sending
-    
+    print(f"Raw request data: {request.data}")
     conn = sqlite3.connect("users.db")
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE email = ?", (email_data.get("to"),))
     user = cursor.fetchone()
-    conn.close()
     if not user:
-        return jsonify({"message": "Sender email not registered"}), 400
+        return jsonify({"message": "Reciever email not registered"}), 400
     # Check if the reciever email is registered
-
-    # Access's the database of who the email is being sent to
-    user_name = f"{email_data.get("to").replace('@', '_').replace('.', '_')}_emails.db"
-    email_conn = sqlite3.connect(user_name)
-    email_cursor = email_conn.cursor()
 
     # Create the email
     new_email = {
@@ -174,12 +168,14 @@ def email_send():
     }
 
     # Add the email to the database
-    email_cursor.execute('''
-                INSERT INTO emails ("from", "to", subject, message, category, read)
+    cursor.execute('''
+                INSERT INTO inbox ("from", "to", subject, message, category, read)
                 VALUES (?, ?, ?, ?, ?, ?)
             ''', (new_email["from"], new_email["to"], new_email["subject"],
                   new_email["message"], new_email["category"], new_email["read"]))
-    
+    # Connect to the database
+    conn.commit()
+    conn.close()
     return jsonify({"message": "Email sent successfully", "data": email_data}), 200
 
 # Route for fetching inbox emails
@@ -196,6 +192,7 @@ def email_inbox():
         # Connect to the user's email database
         conn = sqlite3.connect("users.db")
         cursor = conn.cursor()
+        # Connect to the database
 
         # Fetch all emails from the user's inbox
         cursor.execute("SELECT * FROM inbox WHERE \"to\" = (?)", (user_email,))
