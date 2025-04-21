@@ -1,22 +1,39 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
+from enum import Enum
+import re
 #from sqlalchemy import create_engine, Column, Integer, String, UniqueConstraint
 #from sqlalchemy.ext.declarative import declarative_base
 
 # TODO: Include some WSGI server instead of running from Flask eventually
 
+class Category(Enum):
+    ALL = 0
+    WORK = 1
+    SCHOOL = 2
+    SUBSCRIPTIONS = 3
+    PROMOTIONS = 4
+    TwoFA = 5
+
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
 
+def checkCategory(cat: str) -> bool:
+    if cat.upper() not in Category:
+        return False
+    else:
+        return True
+    
 def init_user_db():
     """Initialize the SQLite database and create the users table if it doesn't exist."""
     conn = sqlite3.connect("users.db")
     cursor = conn.cursor()
 
     # Drop the users table if it exists
-    cursor.execute("DROP TABLE IF EXISTS users")
+    cursor.execute("DROP TABLE IF EXISTS users") # Comment these out when neccesary
     cursor.execute("DROP TABLE IF EXISTS inbox")
+    cursor.execute("DROP TABLE IF EXISTS categories")
 
     conn.execute("PRAGMA foreign_keys = ON") 
 
@@ -38,6 +55,15 @@ def init_user_db():
             read BOOLEAN NOT NULL DEFAULT 0,
             FOREIGN KEY ("to") REFERENCES users(email)
         )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS categories (
+            "to" TEXT NOT NULL,
+            "from" TEXT NOT NULL,
+            category TEXT NOT NULL,
+            PRIMARY KEY ("to", "from"),
+            FOREIGN KEY ("to") REFERENCES users(email)
+        )              
     ''')
     conn.commit()
 
@@ -71,7 +97,15 @@ def init_user_db():
                 VALUES (?, ?, ?, ?, ?, ?)
             ''', (default_email["from"], default_email["to"], default_email["subject"],
                   default_email["message"], default_email["category"], default_email["read"]))
-
+    
+    example_categories = [
+        ("user1@example.com", "user3@example.com", Category.SCHOOL.value),
+        ("user2@example.com", "admin@epicemail.com", Category.WORK.value),
+        ("user3@example.com", "spectrum@exchange.spectrum.com", Category.PROMOTIONS.value)
+    ]
+    for recipient, sender, category in example_categories:
+        cursor.execute("INSERT INTO categories (\"to\", \"from\", category) VALUES (?, ?, ?)", (recipient, sender, category))
+    
     conn.commit()
     conn.close()
 
@@ -165,6 +199,13 @@ def email_inbox():
         conn = sqlite3.connect("users.db")
         cursor = conn.cursor()
 
+        #Update categories within each inbox to match filters
+        cursor.execute("SELECT i.eid, c.category FROM categories AS c, inbox AS i WHERE c.\"to\" = ? AND i.category != c.category", (user_email,))
+        incorrect_Cattegory = cursor.fetchall()
+        for category in incorrect_Cattegory:
+            cursor.execute('''UPDATE inbox SET category = ? WHERE eid = ?''',(category[1], category[0]))
+        conn.commit()
+
         # Fetch all emails from the user's inbox
         cursor.execute("SELECT * FROM inbox WHERE \"to\" = (?)", (user_email,))
         emails = cursor.fetchall()
@@ -186,6 +227,7 @@ def email_inbox():
         conn.close()
         return jsonify({"message": "Inbox emails fetched successfully", "emails": email_list}), 200
     except sqlite3.Error as e:
+        print(e)
         return jsonify({"message": f"Error fetching emails: {str(e)}"}), 500
 
 # Default route
