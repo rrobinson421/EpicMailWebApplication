@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
 from enum import Enum
-import re
+
 #from sqlalchemy import create_engine, Column, Integer, String, UniqueConstraint
 #from sqlalchemy.ext.declarative import declarative_base
 
