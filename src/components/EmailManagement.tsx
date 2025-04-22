@@ -92,7 +92,7 @@ const EmailManagement: React.FC = () => {
           email_data: {
             from: userEmail,
             to: selectedEmail.from,
-            message: selectedEmail.message,
+            message: replyMessage,
           },
         }),
       });
@@ -194,8 +194,12 @@ const EmailManagement: React.FC = () => {
                 <div className="reply-section">
                   <textarea
                     placeholder="Type your reply..."
+                    id="replyMessage"
                     value={replyMessage}
-                    onChange={(e) => setReplyMessage(e.target.value)}
+                    onChange={(e) => {
+                      setReplyMessage(e.target.value)
+                    }}
+                    required
                   />
                   <button onClick={handleReplySubmit}>Send Reply</button>
                 </div>

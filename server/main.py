@@ -144,7 +144,7 @@ def email_management():
     action = data.get("action")  # "reply" or "forward"
     original_email_id = data.get("email_id")  # ID of the email being replied to or forwarded
     new_email_data = data.get("email_data")  # New email details (to, subject, message, etc.)
-
+    print(f"Raw request data: {request.data}")
     if action == "mark-as-read":
         # Mark the email as read
         if not original_email_id:
