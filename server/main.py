@@ -254,9 +254,36 @@ def email_send():
 
 # Route for fetching inbox emails
 # TODO: Determine how to select category, update the to: format, and mark as read
-@app.route('/email-inbox', methods=['POST'])
+@app.route('/email-inbox', methods=['POST', 'GET'])
 def email_inbox():
-    data = request.json
+    if request.method == 'GET':
+        try:
+            conn = sqlite3.connect("users.db")
+            cursor = conn.cursor()
+
+            # Fetch all emails from the inbox table
+            cursor.execute("SELECT * FROM inbox")
+            emails = cursor.fetchall()
+
+            # Map the emails to a dictionary format
+            email_list = [
+                {
+                    "id": email[0],
+                    "from": email[1],
+                    "to": email[2],
+                    "subject": email[3],
+                    "message": email[4],
+                    "category": email[5],
+                    "read": bool(email[6]),
+                }
+                for email in emails
+            ]
+            conn.close()
+            return jsonify({"message": "All emails fetched successfully", "emails": email_list}), 200
+        except sqlite3.Error as e:
+            return jsonify({"message": f"Error fetching emails: {str(e)}"}), 500
+    elif request.method == 'POST':
+        data = request.json
     user_email = data.get("email")  # Get the logged-in user's email
     print(user_email)
     if not user_email:
