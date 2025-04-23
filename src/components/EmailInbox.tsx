@@ -21,7 +21,7 @@ const EmailInbox: React.FC<EmailInboxProps> = ({activeTab, onEmailClick}) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [refreshKey, setRefreshKey] = useState(0); // State to trigger re-fetching emails
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchEmails = async () => {
     console.log("Fetching emails...");
@@ -82,10 +82,15 @@ const EmailInbox: React.FC<EmailInboxProps> = ({activeTab, onEmailClick}) => {
     // setActiveTab("all");
   };
 
-  // Combine search and category filters
   const filteredEmails = emails.filter((email) => {
-    const matchesCategory = activeTab === "all" || (activeTab === "unread" && !email.read) || // Filter unread emails
-    email.category === activeTab;
+    let matchesCategory = false;
+    if (activeTab === "all") {
+      matchesCategory = true; // Show all emails
+    } else if (!email.read && activeTab === "unread") {
+      matchesCategory = !email.read; // Show only unread emails
+    } else {
+      matchesCategory = email.category === activeTab.toLowerCase(); // Show emails in the selected category
+    }
     const matchesSearchQuery =
       email.from.toLowerCase().includes(searchQuery.toLowerCase()) ||
       email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||

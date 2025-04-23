@@ -174,6 +174,39 @@ const EmailManagement: React.FC = () => {
     navigate("/login");
   };
 
+  const handleSelectedCategory = async (newCategory: string) => {
+    setSelectedCategory(newCategory);
+  
+    if (selectedEmail) {
+      try {
+        const response = await fetch("http://127.0.0.1:5000/email-management", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "update-category",
+            email_id: selectedEmail.id,
+            new_category: newCategory,
+          }),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to update category");
+        }
+  
+        console.log(`Category updated to: ${newCategory}`);
+        console.log(`Current User: ${selectedEmail.from}`);
+  
+      } catch (err) {
+        console.error(
+          err instanceof Error ? err.message : "An unknown error occurred"
+        );
+      }
+    } else {
+      console.log("No email selected.");
+    }
+  };
+
   return (
     <div className="email-management">
       <div className="email-management-container">
@@ -197,7 +230,7 @@ const EmailManagement: React.FC = () => {
 
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
+                onChange={(e) => handleSelectedCategory(e.target.value)}
               >
                 {categories.map((category, index) => (
                   <option key={index} value={category}>
@@ -210,7 +243,6 @@ const EmailManagement: React.FC = () => {
               <button onClick={handleForward}>Forward</button>
               <button onClick={handleBackToCompose}>Back to Compose</button>
 
-              {/* Reply Section */}
               {isReplying && (
                 <div className="reply-section">
                   <textarea
@@ -226,7 +258,6 @@ const EmailManagement: React.FC = () => {
                 </div>
               )}
 
-              {/* Forward Section */}
               {isForwarding && (
                 <div className="forward-section">
                   <input
@@ -243,7 +274,6 @@ const EmailManagement: React.FC = () => {
             <EmailSend onSubmit={(emailData) => console.log(emailData)} />
           )}
 
-          {/* Success/Error Message */}
           {message && (
             <p className={`success-message ${messageType}`}>{message}</p>
           )}

@@ -175,10 +175,12 @@ def login():
 @app.route('/email-management', methods=['POST'])
 def email_management():
     data = request.json
-    action = data.get("action")  # "reply" or "forward"
+    print(f"Raw request data: {request.data}")
+    action = data.get("action") 
+    print(action)
     original_email_id = data.get("email_id")  # ID of the email being replied to or forwarded
     new_email_data = data.get("email_data")  # New email details (to, subject, message, etc.)
-    print(f"Raw request data: {request.data}")
+
     if action == "mark-as-read":
         # Mark the email as read
         if not original_email_id:
@@ -196,6 +198,22 @@ def email_management():
             return jsonify({"message": "Email marked as read"}), 200
         except sqlite3.Error as e:
             return jsonify({"message": f"Error updating email read status: {str(e)}"}), 500
+        
+    if action == 'update-category':
+        new_category = data.get('new_category').lower()
+
+        try:
+            conn = sqlite3.connect('users.db')
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE inbox SET category = ? WHERE eid = ?",
+                (new_category, original_email_id)
+            )
+            conn.commit()
+            conn.close()
+            return jsonify({"message": "Category updated successfully"}), 200
+        except Exception as e:
+            return jsonify({"message": str(e)}), 500
 
     if not action or not original_email_id or not new_email_data:
         return jsonify({"message": "Action, email ID, and email data are required"}), 400
