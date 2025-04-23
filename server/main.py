@@ -8,14 +8,6 @@ from enum import Enum
 
 # TODO: Include some WSGI server instead of running from Flask eventually
 
-class Category(Enum):
-    ALL = 0
-    WORK = 1
-    SCHOOL = 2
-    SUBSCRIPTIONS = 3
-    PROMOTIONS = 4
-    TwoFA = 5
-
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
 
@@ -99,9 +91,9 @@ def init_user_db():
                   default_email["message"], default_email["category"], default_email["read"]))
     
     example_categories = [
-        ("user1@example.com", "user3@example.com", Category.SCHOOL.value),
-        ("user2@example.com", "admin@epicemail.com", Category.WORK.value),
-        ("user3@example.com", "spectrum@exchange.spectrum.com", Category.PROMOTIONS.value)
+        ("user1@example.com", "user3@example.com", "school"),
+        ("user2@example.com", "admin@epicemail.com", "work"),
+        ("user3@example.com", "spectrum@exchange.spectrum.com", "promotions")
     ]
     for recipient, sender, category in example_categories:
         cursor.execute("INSERT INTO categories (\"to\", \"from\", category) VALUES (?, ?, ?)", (recipient, sender, category))
@@ -200,7 +192,9 @@ def email_management():
             return jsonify({"message": f"Error updating email read status: {str(e)}"}), 500
         
     if action == 'update-category':
-        new_category = data.get('new_category').lower()
+        new_category = data.get('new_category')
+        to_data = data.get('to')
+        from_data = data.get('from')
 
         try:
             conn = sqlite3.connect('users.db')
@@ -210,6 +204,16 @@ def email_management():
                 (new_category, original_email_id)
             )
             conn.commit()
+
+            #Update categories within each inbox to match filters
+            cursor.execute("SELECT i.eid, c.category FROM categories AS c, inbox AS i WHERE c.\"to\" = ? AND i.category != c.category", (to_data, ))
+            incorrect_Category = cursor.fetchall()
+            for category in incorrect_Category:
+                cursor.execute('''UPDATE inbox SET category = ? WHERE eid = ?''',(new_category, category[0]))
+            conn.commit()
+            var = cursor.fetchall()
+            print(var)
+
             conn.close()
             return jsonify({"message": "Category updated successfully"}), 200
         except Exception as e:
@@ -346,13 +350,6 @@ def email_inbox():
         conn = sqlite3.connect("users.db")
         cursor = conn.cursor()
         # Connect to the database
-
-        #Update categories within each inbox to match filters
-        cursor.execute("SELECT i.eid, c.category FROM categories AS c, inbox AS i WHERE c.\"to\" = ? AND i.category != c.category", (user_email,))
-        incorrect_Cattegory = cursor.fetchall()
-        for category in incorrect_Cattegory:
-            cursor.execute('''UPDATE inbox SET category = ? WHERE eid = ?''',(category[1], category[0]))
-        conn.commit()
 
         # Fetch all emails from the user's inbox
         cursor.execute("SELECT * FROM inbox WHERE \"to\" = (?)", (user_email,))

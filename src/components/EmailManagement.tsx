@@ -175,8 +175,10 @@ const EmailManagement: React.FC = () => {
   };
 
   const handleSelectedCategory = async (newCategory: string) => {
-    setSelectedCategory(newCategory);
-  
+    const lowerCaseCategory = newCategory.toLowerCase(); // Convert to lowercase
+    setSelectedCategory(lowerCaseCategory);
+    console.log(lowerCaseCategory)
+    
     if (selectedEmail) {
       try {
         const response = await fetch("http://127.0.0.1:5000/email-management", {
@@ -185,7 +187,9 @@ const EmailManagement: React.FC = () => {
           body: JSON.stringify({
             action: "update-category",
             email_id: selectedEmail.id,
-            new_category: newCategory,
+            new_category: lowerCaseCategory,
+            to: selectedEmail.to,
+            from: selectedEmail.from
           }),
         });
   
@@ -193,9 +197,6 @@ const EmailManagement: React.FC = () => {
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to update category");
         }
-  
-        console.log(`Category updated to: ${newCategory}`);
-        console.log(`Current User: ${selectedEmail.from}`);
   
       } catch (err) {
         console.error(
