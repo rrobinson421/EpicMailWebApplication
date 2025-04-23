@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Sidebar from "./components/Sidebar";
-import Inbox from "./components/Inbox";
+import EmailManagement from "./components/EmailManagement";
 import "./App.css";
 
 function App() {
@@ -14,7 +14,7 @@ function App() {
     <div className="app-container">
       <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
       <div className="main-content">
-        <Inbox activeTab={activeTab} />
+        <EmailManagement  />
       </div>
     </div>
   );

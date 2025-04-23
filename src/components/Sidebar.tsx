@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { JSX } from "react";
 import {
   FaInbox,
@@ -19,6 +19,7 @@ import "/src/styles/SidebarStyle.css";
 interface SidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  setCategories?: any;
 }
 
 interface Tab {
@@ -28,7 +29,11 @@ interface Tab {
   isCustom?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  activeTab,
+  onTabChange,
+  setCategories,
+}) => {
   const defaultTabs: Tab[] = [
     { id: "all", label: "All Inbox", icon: <FaInbox /> },
     { id: "unread", label: "Unread", icon: <FaEnvelopeOpen /> },
@@ -42,6 +47,13 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (setCategories) {
+      const titles = tabs.map((tab) => tab.label);
+      setCategories(titles);
+    }
+  }, [tabs, setCategories]);
 
   const handleAddCategory = () => {
     if (isAdding) {
@@ -79,7 +91,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
     <div className="sidebar">
       <div className="sidebar-content">
         <h2 className="sidebar-title">Mail</h2>
-
         <nav className="sidebar-nav">
           {tabs.map((tab) => (
             <div key={tab.id} className="sidebar-button-wrapper">

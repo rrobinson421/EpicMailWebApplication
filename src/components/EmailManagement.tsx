@@ -4,6 +4,7 @@ import EmailSend from "./EmailSend";
 import EmailInbox from "./EmailInbox";
 import { Email } from "./EmailInbox";
 import "/src/styles/EmailManagementStyle.css";
+import Sidebar from "./Sidebar";
 
 const EmailManagement: React.FC = () => {
   const [isEmailView, setIsEmailView] = useState<boolean>(false);
@@ -14,7 +15,10 @@ const EmailManagement: React.FC = () => {
   const [isForwarding, setIsForwarding] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
   const [messageType, setMessageType] = useState<"success" | "error" | "">("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<string[]>([]);
 
   // Handle email selection
   const handleEmailClick = async (email: Email) => {
@@ -173,8 +177,14 @@ const EmailManagement: React.FC = () => {
   return (
     <div className="email-management">
       <div className="email-management-container">
+        <Sidebar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          setCategories={setCategories}
+        />
+
         <div className="email-inbox">
-          <EmailInbox onEmailClick={handleEmailClick} />
+          <EmailInbox activeTab={activeTab} onEmailClick={handleEmailClick} />
         </div>
 
         <div className="email-view">
@@ -184,6 +194,17 @@ const EmailManagement: React.FC = () => {
               <h3>From: {selectedEmail?.from}</h3>
               <h4>Subject: {selectedEmail?.subject}</h4>
               <p>{selectedEmail?.message}</p>
+
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                {categories.map((category, index) => (
+                  <option key={index} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
 
               <button onClick={handleReply}>Reply</button>
               <button onClick={handleForward}>Forward</button>

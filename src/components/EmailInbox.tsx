@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "./Sidebar";
 import "/src/styles/EmailInboxStyle.css";
 
 export interface Email {
@@ -13,13 +12,14 @@ export interface Email {
 }
 
 interface EmailInboxProps {
-  onEmailClick: (email: Email) => void; // Prop to handle email click
+  activeTab: string;
+  onEmailClick: (email: Email) => void;
 }
 
-const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick}) => {
+
+const EmailInbox: React.FC<EmailInboxProps> = ({activeTab, onEmailClick}) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState(0); // State to trigger re-fetching emails
 
@@ -95,8 +95,6 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ onEmailClick}) => {
 
   return (
     <div className="email-container">
-      {/* Sidebar for tabs */}
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
       <div className="main-content">
         <h2 className="inbox__title">
           {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Inbox
