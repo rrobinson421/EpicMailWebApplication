@@ -35,12 +35,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   setCategories,
 }) => {
   const defaultTabs: Tab[] = [
-    { id: "all", label: "All Inbox", icon: <FaInbox /> },
+    { id: "all", label: "All", icon: <FaInbox /> },
     { id: "unread", label: "Unread", icon: <FaEnvelopeOpen /> },
     { id: "work", label: "Work", icon: <FaBriefcase /> },
     { id: "school", label: "School", icon: <FaGraduationCap /> },
     { id: "subscriptions", label: "Subscriptions", icon: <FaNewspaper /> },
-    { id: "ads", label: "Promotions", icon: <FaAd /> },
+    { id: "promotions", label: "Promotions", icon: <FaAd /> },
   ];
 
   const [tabs, setTabs] = useState<Tab[]>(defaultTabs);
