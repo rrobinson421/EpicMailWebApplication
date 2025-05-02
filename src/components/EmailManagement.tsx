@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EmailSend from "./EmailSend";
 import EmailInbox from "./EmailInbox";
@@ -17,9 +17,10 @@ const EmailManagement: React.FC = () => {
   const [messageType, setMessageType] = useState<"success" | "error" | "">("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
   const [categories, setCategories] = useState<string[]>([]);
-
+  
   // Handle email selection
   const handleEmailClick = async (email: Email) => {
     setSelectedEmail(email);
@@ -174,6 +175,12 @@ const EmailManagement: React.FC = () => {
     navigate("/login");
   };
 
+  useEffect(() => {
+    if (refreshKey != 0) {
+      window.location.reload();
+    }
+  }, [refreshKey]);
+
   const handleSelectedCategory = async (newCategory: string) => {
     const lowerCaseCategory = newCategory.toLowerCase(); // Convert to lowercase
     setSelectedCategory(lowerCaseCategory);
@@ -197,8 +204,10 @@ const EmailManagement: React.FC = () => {
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to update category");
         }
-  
+        
+        setRefreshKey((prevKey) => prevKey + 1); // Trigger a refresh
       } catch (err) {
+        setRefreshKey((prevKey) => prevKey + 1); // Trigger a refresh
         console.error(
           err instanceof Error ? err.message : "An unknown error occurred"
         );
@@ -218,7 +227,11 @@ const EmailManagement: React.FC = () => {
         />
 
         <div className="email-inbox">
-          <EmailInbox activeTab={activeTab} onEmailClick={handleEmailClick} />
+          <EmailInbox
+            activeTab={activeTab}
+            onEmailClick={handleEmailClick}
+            refreshKey={refreshKey}
+          />
         </div>
 
         <div className="email-view">
@@ -289,3 +302,4 @@ const EmailManagement: React.FC = () => {
 };
 
 export default EmailManagement;
+

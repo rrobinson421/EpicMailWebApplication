@@ -14,14 +14,14 @@ export interface Email {
 interface EmailInboxProps {
   activeTab: string;
   onEmailClick: (email: Email) => void;
+  refreshKey: number; // Optional prop to trigger refresh
 }
 
-
-const EmailInbox: React.FC<EmailInboxProps> = ({activeTab, onEmailClick}) => {
+const EmailInbox: React.FC<EmailInboxProps> = ({ activeTab, onEmailClick }) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshKey] = useState(0); // State to trigger refresh
 
   const fetchEmails = async () => {
     console.log("Fetching emails...");
@@ -49,10 +49,18 @@ const EmailInbox: React.FC<EmailInboxProps> = ({activeTab, onEmailClick}) => {
     }
   };
 
-  useEffect(() => {
+  // Expose fetchEmails to the parent component
+  useEffect(() => { 
     fetchEmails();
   }, [refreshKey]);
 
+  
+
+  const refreshEmails = () => {
+    setEmails([]); // Clear emails to show loading state
+    fetchEmails(); // Fetch emails again
+  };
+  
   const handleEmailClick = async (email: Email) => {
     try {
       // Mark the email as read
@@ -72,7 +80,7 @@ const EmailInbox: React.FC<EmailInboxProps> = ({activeTab, onEmailClick}) => {
       }
 
       // Trigger a refresh by updating the refreshKey
-      setRefreshKey((prevKey) => prevKey + 1);
+      refreshEmails();
     } catch (err) {
       console.error("Error marking email as read:", err);
     }
