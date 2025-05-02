@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EmailSend from "./EmailSend";
-import EmailInbox from "./EmailInbox";
-import { Email } from "./EmailInbox";
+import EmailInbox, { Email } from "./EmailInbox";
 import "/src/styles/EmailManagementStyle.css";
 import Sidebar from "./Sidebar";
 
@@ -20,7 +19,7 @@ const EmailManagement: React.FC = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const navigate = useNavigate();
   const [categories, setCategories] = useState<string[]>([]);
-  
+
   // Handle email selection
   const handleEmailClick = async (email: Email) => {
     setSelectedEmail(email);
@@ -206,8 +205,10 @@ const EmailManagement: React.FC = () => {
         }
         
         setRefreshKey((prevKey) => prevKey + 1); // Trigger a refresh
+        console.log("Refresh key updated:", refreshKey);
       } catch (err) {
         setRefreshKey((prevKey) => prevKey + 1); // Trigger a refresh
+        console.log("Refresh key updated:", refreshKey);
         console.error(
           err instanceof Error ? err.message : "An unknown error occurred"
         );

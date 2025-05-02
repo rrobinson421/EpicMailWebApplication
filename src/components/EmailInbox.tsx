@@ -54,8 +54,6 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ activeTab, onEmailClick }) => {
     fetchEmails();
   }, [refreshKey]);
 
-  
-
   const refreshEmails = () => {
     setEmails([]); // Clear emails to show loading state
     fetchEmails(); // Fetch emails again
