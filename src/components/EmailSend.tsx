@@ -32,7 +32,7 @@ const EmailSend: React.FC<EmailSendProps> = ({ onSubmit }) => {
       if (response.ok) {
         setSuccessMessage('Email sent successfully!');
       } else {
-        alert('Error sending email. Please try again.');
+        setSuccessMessage('Failed to send email. Please try again.');
       }
 
       // Hide the success message after 5 seconds
@@ -46,7 +46,7 @@ const EmailSend: React.FC<EmailSendProps> = ({ onSubmit }) => {
       setMessage('');
     } catch (error) {
       console.error('Error during login:', error);
-      alert('An error occurred. Please try again.');
+      setSuccessMessage('An error occurred. Please try again.');
     }
   };
 
@@ -87,7 +87,15 @@ const EmailSend: React.FC<EmailSendProps> = ({ onSubmit }) => {
       </form>
 
       {/* Display success message if email was sent */}
-      {successMessage && <p className="success-message">{successMessage}</p>}
+      {successMessage && (
+      <p
+        className={`success-message ${
+          successMessage.includes('successfully') ? 'green' : 'red'
+        }`}
+      >
+        {successMessage}
+      </p>
+    )}
 
     </div>
   );

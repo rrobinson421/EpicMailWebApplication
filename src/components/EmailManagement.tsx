@@ -222,7 +222,7 @@ const EmailManagement: React.FC = () => {
         </div>
 
         <div className="email-view">
-          <button onClick={handleBackToCompose}>New Email</button>
+          {/* <button onClick={handleBackToCompose}>New Email</button> */}
           {isEmailView ? (
             <div className="email-expanded">
               <h3>From: {selectedEmail?.from}</h3>
