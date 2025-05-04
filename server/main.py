@@ -10,12 +10,6 @@ from enum import Enum
 
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"])
-
-def checkCategory(cat: str) -> bool:
-    if cat.upper() not in Category:
-        return False
-    else:
-        return True
     
 def init_user_db():
     """Initialize the SQLite database and create the users table if it doesn't exist."""
@@ -89,14 +83,16 @@ def init_user_db():
                 VALUES (?, ?, ?, ?, ?, ?)
             ''', (default_email["from"], default_email["to"], default_email["subject"],
                   default_email["message"], default_email["category"], default_email["read"]))
-    
+    '''
     example_categories = [
         ("user1@example.com", "user3@example.com", "school"),
         ("user2@example.com", "admin@epicemail.com", "work"),
         ("user3@example.com", "spectrum@exchange.spectrum.com", "promotions")
     ]
-    for recipient, sender, category in example_categories:
+     for recipient, sender, category in example_categories:
         cursor.execute("INSERT INTO categories (\"to\", \"from\", category) VALUES (?, ?, ?)", (recipient, sender, category))
+    '''
+   
     
     conn.commit()
     conn.close()
@@ -192,30 +188,51 @@ def email_management():
             return jsonify({"message": f"Error updating email read status: {str(e)}"}), 500
         
     if action == 'update-category':
-        new_category = data.get('new_category')
+        new_category = data.get('new_category').lower()
         to_data = data.get('to')
         from_data = data.get('from')
 
         try:
             conn = sqlite3.connect('users.db')
             cursor = conn.cursor()
+
+            # Update the category for all emails sent by the specified sender to the specified recipient
             cursor.execute(
-                "UPDATE inbox SET category = ? WHERE eid = ?",
-                (new_category, original_email_id)
+                "UPDATE inbox SET category = ? WHERE \"to\" = ? AND \"from\" = ?",
+                (new_category, to_data, from_data)
+            )
+            
+            # If the new category is "unread", mark the emails as unread
+            if new_category == "unread":
+                cursor.execute(
+                    "UPDATE inbox SET read = 0 WHERE \"to\" = ? AND \"from\" = ?",
+                    (to_data, from_data)
+                )
+
+            # Update the categories table to reflect the new category for future emails
+            cursor.execute(
+                '''
+                INSERT INTO categories ("to", "from", category)
+                VALUES (?, ?, ?)
+                ON CONFLICT("to", "from") DO UPDATE SET category = excluded.category
+                ''',
+                (to_data, from_data, new_category)
             )
             conn.commit()
 
-            #Update categories within each inbox to match filters
-            cursor.execute("SELECT i.eid, c.category FROM categories AS c, inbox AS i WHERE c.\"to\" = ? AND i.category != c.category", (to_data, ))
-            incorrect_Category = cursor.fetchall()
-            for category in incorrect_Category:
-                cursor.execute('''UPDATE inbox SET category = ? WHERE eid = ?''',(new_category, category[0]))
-            conn.commit()
-            var = cursor.fetchall()
-            print(var)
+            # Print the updated inbox database for debugging
+            print("Updated Inbox Database:")
+            for email in cursor.execute("SELECT * FROM inbox"):
+                print(f"ID: {email[0]}, From: {email[1]}, To: {email[2]}, Subject: {email[3]}, "
+                  f"Message: {email[4]}, Category: {email[5]}, Read: {bool(email[6])}")
+                
+            # Print the updated categories database for debugging
+            print("Updated Categories Database:")
+            for category in cursor.execute("SELECT * FROM categories"):
+                print(f"To: {category[0]}, From: {category[1]}, Category: {category[2]}")
 
             conn.close()
-            return jsonify({"message": "Category updated successfully"}), 200
+            return jsonify({"message": "Category updated successfully for all matching emails"}), 200
         except Exception as e:
             return jsonify({"message": str(e)}), 500
 
@@ -340,40 +357,64 @@ def email_inbox():
             return jsonify({"message": f"Error fetching emails: {str(e)}"}), 500
     elif request.method == 'POST':
         data = request.json
-    user_email = data.get("email")  # Get the logged-in user's email
-    print(user_email)
-    if not user_email:
-        return jsonify({"message": "User email is required"}), 400
+        user_email = data.get("email")  # Get the logged-in user's email
+        print(f"Raw request data: {request.data}")
+        if not user_email:
+            return jsonify({"message": "User email is required"}), 400
 
-    try:
-        # Connect to the user's email database
-        conn = sqlite3.connect("users.db")
-        cursor = conn.cursor()
-        # Connect to the database
+        try:
+            # Connect to the user's email database
+            conn = sqlite3.connect("users.db")
+            cursor = conn.cursor()
 
-        # Fetch all emails from the user's inbox
-        cursor.execute("SELECT * FROM inbox WHERE \"to\" = (?)", (user_email,))
-        emails = cursor.fetchall()
+            # Fetch all unique senders for the logged-in user
+            cursor.execute("SELECT DISTINCT \"from\" FROM inbox WHERE \"to\" = ?", (user_email,))
+            unique_senders = cursor.fetchall()
 
-        # Map the emails to a dictionary format
-        email_list = [
-            {
-                "id": email[0],
-                "from": email[1],
-                "to": email[2],
-                "subject": email[3],
-                "message": email[4],
-                "category": email[5],
-                "read": bool(email[6]),
-            }
-            for email in emails
-        ]
+            # Check if each sender exists in the categories table and update their emails
+            for sender in unique_senders:
+                sender_email = sender[0]
 
-        conn.close()
-        return jsonify({"message": "Inbox emails fetched successfully", "emails": email_list}), 200
-    except sqlite3.Error as e:
-        print(e)
-        return jsonify({"message": f"Error fetching emails: {str(e)}"}), 500
+                # Check if the sender exists in the categories table for the logged-in user
+                cursor.execute(
+                    "SELECT category FROM categories WHERE \"to\" = ? AND \"from\" = ?",
+                    (user_email, sender_email)
+                )
+                category_row = cursor.fetchone()
+
+                if category_row:
+                    # Update all emails from this sender to the logged-in user with the respective category
+                    new_category = category_row[0]
+                    cursor.execute(
+                        "UPDATE inbox SET category = ? WHERE \"to\" = ? AND \"from\" = ?",
+                        (new_category, user_email, sender_email)
+                    )
+
+            conn.commit()
+
+            # Fetch all emails from the user's inbox after updating categories
+            cursor.execute("SELECT * FROM inbox WHERE \"to\" = ?", (user_email,))
+            emails = cursor.fetchall()
+
+            # Map the emails to a dictionary format
+            email_list = [
+                {
+                    "id": email[0],
+                    "from": email[1],
+                    "to": email[2],
+                    "subject": email[3],
+                    "message": email[4],
+                    "category": email[5],
+                    "read": bool(email[6]),
+                }
+                for email in emails
+            ]
+
+            conn.close()
+            return jsonify({"message": "Inbox emails fetched and updated successfully", "emails": email_list}), 200
+        except sqlite3.Error as e:
+            print(e)
+            return jsonify({"message": f"Error fetching or updating emails: {str(e)}"}), 500
 
 # Default route
 @app.route('/')
