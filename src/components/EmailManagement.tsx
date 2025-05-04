@@ -231,7 +231,6 @@ const EmailManagement: React.FC = () => {
           <EmailInbox
             activeTab={activeTab}
             onEmailClick={handleEmailClick}
-            refreshKey={refreshKey}
           />
         </div>
 

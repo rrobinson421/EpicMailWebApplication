@@ -27,6 +27,9 @@
 }
 
 .inbox__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background-color: #333;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -55,6 +58,23 @@
 .inbox__item p {
   margin-top: 0.5rem;
   color: #cccccc;
+}
+
+.email-content {
+  flex: 1;
+}
+
+.delete-icon {
+  color: #ff4d4d;
+  font-size: 18px;
+  cursor: pointer;
+  visibility: hidden; /* Hide by default */
+  transition: visibility 0.2s, opacity 0.2s;
+}
+
+.inbox__item:hover .delete-icon {
+  visibility: visible; /* Show on hover */
+  opacity: 1;
 }
 
 .logout-button {
