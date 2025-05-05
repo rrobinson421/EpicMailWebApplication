@@ -1,3 +1,4 @@
+import { FaTrash } from "react-icons/fa";
 import React, { useState, useEffect } from "react";
 import "/src/styles/EmailInboxStyle.css";
 
@@ -14,14 +15,14 @@ export interface Email {
 interface EmailInboxProps {
   activeTab: string;
   onEmailClick: (email: Email) => void;
-  refreshKey: number; // Optional prop to trigger refresh
 }
 
-const EmailInbox: React.FC<EmailInboxProps> = ({ activeTab, onEmailClick }) => {
+
+const EmailInbox: React.FC<EmailInboxProps> = ({activeTab, onEmailClick}) => {
   const [emails, setEmails] = useState<Email[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [refreshKey] = useState(0); // State to trigger refresh
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchEmails = async () => {
     console.log("Fetching emails...");
@@ -49,16 +50,10 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ activeTab, onEmailClick }) => {
     }
   };
 
-  // Expose fetchEmails to the parent component
-  useEffect(() => { 
+  useEffect(() => {
     fetchEmails();
   }, [refreshKey]);
 
-  const refreshEmails = () => {
-    setEmails([]); // Clear emails to show loading state
-    fetchEmails(); // Fetch emails again
-  };
-  
   const handleEmailClick = async (email: Email) => {
     try {
       // Mark the email as read
@@ -78,7 +73,7 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ activeTab, onEmailClick }) => {
       }
 
       // Trigger a refresh by updating the refreshKey
-      refreshEmails();
+      setRefreshKey((prevKey) => prevKey + 1);
     } catch (err) {
       console.error("Error marking email as read:", err);
     }
@@ -86,6 +81,30 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ activeTab, onEmailClick }) => {
     // Pass the email to the parent component (if needed)
     onEmailClick(email);
     // setActiveTab("all");
+  };
+
+  const deleteEmail = async (emailId: number) => {
+    try {
+      const response = await fetch("http://127.0.0.1:5000/email-management", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "delete-email",
+          email_id: emailId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete email");
+      }
+
+      // Remove the deleted email from the state
+      setEmails((prevEmails) => prevEmails.filter((email) => email.id !== emailId));
+      setRefreshKey((prevKey) => prevKey + 1); // Trigger a refresh
+    } catch (err) {
+      console.error("Error deleting email:", err);
+    }
   };
 
   const filteredEmails = emails.filter((email) => {
@@ -129,9 +148,18 @@ const EmailInbox: React.FC<EmailInboxProps> = ({ activeTab, onEmailClick }) => {
               className={`inbox__item ${!email.read ? "unread" : ""}`}
               onClick={() => handleEmailClick(email)}
             >
-              <strong>From:</strong> {email.from} <br />
-              <strong>Subject:</strong> {email.subject} <br />
-              <p>{email.message}</p>
+              <div className = "email-content">
+                <strong>From:</strong> {email.from} <br />
+                <strong>Subject:</strong> {email.subject} <br />
+                <p>{email.message}</p>
+              </div>
+              <FaTrash
+                className="delete-icon"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the email click event
+                  deleteEmail(email.id);
+                }}
+              />
             </li>
           ))}
         </ul>

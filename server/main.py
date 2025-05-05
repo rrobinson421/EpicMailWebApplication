@@ -236,6 +236,24 @@ def email_management():
         except Exception as e:
             return jsonify({"message": str(e)}), 500
 
+    if action == "delete-email":
+        email_id = data.get("email_id")
+        if not email_id:
+            return jsonify({"message": "Email ID is required"}), 400
+
+        try:
+            conn = sqlite3.connect("users.db")
+            cursor = conn.cursor()
+
+            # Delete the email with the specified ID
+            cursor.execute("DELETE FROM inbox WHERE eid = ?", (email_id,))
+            conn.commit()
+            conn.close()
+
+            return jsonify({"message": "Email deleted successfully"}), 200
+        except sqlite3.Error as e:
+            return jsonify({"message": f"Error deleting email: {str(e)}"}), 500
+
     if not action or not original_email_id or not new_email_data:
         return jsonify({"message": "Action, email ID, and email data are required"}), 400
 
