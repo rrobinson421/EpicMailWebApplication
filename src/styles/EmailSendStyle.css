@@ -37,12 +37,19 @@
 }
 
 .success-message {
-  color: green;
   font-size: 16px;
   margin-top: 20px;
   font-weight: bold;
   text-align: center; 
   width: 100%;
+}
+
+.success-message.green {
+  color: green;
+}
+
+.success-message.red {
+  color: red;
 }
 
 .logout-button {

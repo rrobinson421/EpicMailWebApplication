@@ -231,12 +231,11 @@ const EmailManagement: React.FC = () => {
           <EmailInbox
             activeTab={activeTab}
             onEmailClick={handleEmailClick}
-            refreshKey={refreshKey}
           />
         </div>
 
         <div className="email-view">
-          <button onClick={handleBackToCompose}>New Email</button>
+          {/* <button onClick={handleBackToCompose}>New Email</button> */}
           {isEmailView ? (
             <div className="email-expanded">
               <h3>From: {selectedEmail?.from}</h3>
